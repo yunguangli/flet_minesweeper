@@ -159,7 +159,7 @@ def main(page: ft.Page):
 
     # Function to create the grid
     def create_grid(rows, cols):
-        return ft.Container(
+        grid= ft.Container(
             bgcolor=LIGHT_GRAY,
             border=ft.border.only(
                 left=ft.border.BorderSide(2, DARK_GRAY),
@@ -178,6 +178,7 @@ def main(page: ft.Page):
                 spacing=0,
             ),
         )
+        return ft.Row([grid], alignment=ft.MainAxisAlignment.CENTER)
 
     # Create default grid
     grid_container = ft.Container(
