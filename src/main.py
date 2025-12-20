@@ -277,10 +277,11 @@ def main(page: ft.Page):
             rows, cols = 16, 30
         else:
             rows, cols = 8, 8
-
+        
         # Update the grid
         grid_container.content = create_grid(rows, cols)
         page.update()
+        place_mines(rows, cols)
 
     # Create a main layout container that includes the menubar at the top
     main_layout = ft.Column(
