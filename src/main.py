@@ -1,4 +1,6 @@
 import flet as ft
+import random
+
 
 def main(page: ft.Page):
     page.title = "Minesweeper UI"
@@ -13,6 +15,13 @@ def main(page: ft.Page):
     RED = "#FF0000"
     BLACK = "#000000"
     DARK_RED = "#800000"
+
+    flag_str: str = "🚩"
+    mine_str: str = "💣"
+
+    rows: int = 8
+    cols: int = 8
+    mine_percentage: float = 0.15  # Adjust based on difficulty
 
     # Outer border (sunken effect)
     outer_container = ft.Container(
@@ -110,7 +119,7 @@ def main(page: ft.Page):
             style=ft.ButtonStyle(
                 padding=0,
                 shape=ft.RoundedRectangleBorder(radius=0),
-            )
+            ),
         ),
         alignment=ft.alignment.center,
     )
@@ -119,33 +128,47 @@ def main(page: ft.Page):
     top_panel_container.content.controls = [
         mine_counter_bg,
         smiley_button,
-        timer_counter_bg
+        timer_counter_bg,
     ]
 
-    # Dropdown for grid size selection (styled to match)
-    grid_size_dropdown = ft.Dropdown(
-        label="Grid Size",
-        label_style=ft.TextStyle(size=12, weight="bold"),
-        options=[
-            ft.dropdown.Option("8x8"),
-            ft.dropdown.Option("16x16"),
-            ft.dropdown.Option("24x24"),
-            ft.dropdown.Option("30x16 (Expert)"),
+    # MenuBar for game options (styled to match)
+    menubar = ft.MenuBar(
+        expand=False,
+        style=ft.MenuStyle(
+            bgcolor=LIGHT_GRAY,
+            alignment=ft.alignment.top_left,
+        ),
+        controls=[
+            ft.SubmenuButton(
+                content=ft.Text("Game", size=12, weight="bold"),
+                controls=[
+                    ft.MenuItemButton(
+                        content=ft.Text("8x8"),
+                        on_click=lambda e: change_grid_size("8x8"),
+                    ),
+                    ft.MenuItemButton(
+                        content=ft.Text("16x16"),
+                        on_click=lambda e: change_grid_size("16x16"),
+                    ),
+                    ft.MenuItemButton(
+                        content=ft.Text("24x24"),
+                        on_click=lambda e: change_grid_size("24x24"),
+                    ),
+                    ft.MenuItemButton(
+                        content=ft.Text("30x16 (Expert)"),
+                        on_click=lambda e: change_grid_size("30x16 (Expert)"),
+                    ),
+                ],
+            ),
         ],
-        value="8x8",
-        width=120,
-        bgcolor="#FFFFFF",
-        border_color=DARK_GRAY,
-        focused_border_color=DARK_RED,
-        text_size=12,
-        content_padding=ft.padding.only(left=10),
     )
 
     # Function to create a single cell (3D button effect)
-    def create_cell():
-        return ft.Container(
+    def create_cell(row: int = 0, col: int = 0, has_mine: bool = False):
+        cell = ft.Container(
             width=20,
             height=20,
+            data=(row, col, has_mine),
             bgcolor=LIGHT_GRAY,
             border=ft.border.only(
                 left=ft.border.BorderSide(2, "#FFFFFF"),
@@ -154,12 +177,13 @@ def main(page: ft.Page):
                 bottom=ft.border.BorderSide(2, DARK_GRAY),
             ),
             alignment=ft.alignment.center,
-            on_click=lambda e: print("Cell clicked!"),
+            on_click=lambda e: on_cell_click(e),
         )
+        return cell
 
     # Function to create the grid
     def create_grid(rows, cols):
-        grid= ft.Container(
+        grid = ft.Container(
             bgcolor=LIGHT_GRAY,
             border=ft.border.only(
                 left=ft.border.BorderSide(2, DARK_GRAY),
@@ -171,9 +195,10 @@ def main(page: ft.Page):
             content=ft.Column(
                 controls=[
                     ft.Row(
-                        controls=[create_cell() for _ in range(cols)],
+                        controls=[create_cell(row, col, False) for col in range(cols)],
                         spacing=0,
-                    ) for _ in range(rows)
+                    )
+                    for row in range(rows)
                 ],
                 spacing=0,
             ),
@@ -181,15 +206,13 @@ def main(page: ft.Page):
         return ft.Row([grid], alignment=ft.MainAxisAlignment.CENTER)
 
     # Create default grid
-    grid_container = ft.Container(
-        content=create_grid(8, 8)
-    )
+    grid_container = ft.Container(content=create_grid(rows, cols))
 
-    # Dropdown container (centered below smiley)
-    dropdown_container = ft.Container(
+    # MenuBar container (centered below smiley)
+    menubar_container = ft.Container(
         content=ft.Row(
             controls=[
-                grid_size_dropdown,
+                menubar,
             ],
             alignment=ft.MainAxisAlignment.CENTER,
         ),
@@ -201,7 +224,6 @@ def main(page: ft.Page):
         content=ft.Column(
             controls=[
                 top_panel_container,
-                dropdown_container,
                 ft.Container(height=10),  # Spacing
                 grid_container,
             ],
@@ -212,25 +234,73 @@ def main(page: ft.Page):
         alignment=ft.alignment.center,
     )
 
+    # Function to handle cell click
+    def on_cell_click(e):
+        # Toggle border to create "pressed" effect
+        current_left_color = e.control.border.left.color
+        current_top_color = e.control.border.top.color
+
+        # If currently in normal state (white on top/left), switch to pressed state
+        if current_left_color == "#FFFFFF" and current_top_color == "#FFFFFF":
+            # Change border to create "pressed" effect - swap white and dark borders
+            e.control.border = ft.border.only(
+                left=ft.border.BorderSide(2, DARK_GRAY),
+                top=ft.border.BorderSide(2, DARK_GRAY),
+                right=ft.border.BorderSide(2, "#FFFFFF"),
+                bottom=ft.border.BorderSide(2, "#FFFFFF"),
+            )
+        else:
+            # Restore original border
+            e.control.border = ft.border.only(
+                left=ft.border.BorderSide(2, "#FFFFFF"),
+                top=ft.border.BorderSide(2, "#FFFFFF"),
+                right=ft.border.BorderSide(2, DARK_GRAY),
+                bottom=ft.border.BorderSide(2, DARK_GRAY),
+            )
+
+        if e.control.data[2]:  # If the cell has a mine
+            print(f"Cell {e.control.data} clicked!")
+            e.control.content = ft.Text(mine_str, size=9)
+        # Add your cell reveal logic here
+        page.update()
+
     # Function to handle grid size change
-    def on_grid_change(e):
-        value = grid_size_dropdown.value
-        if value == "8x8":
+    def change_grid_size(size):
+        nonlocal rows, cols
+        if size == "8x8":
             rows, cols = 8, 8
-        elif value == "16x16":
+        elif size == "16x16":
             rows, cols = 16, 16
-        elif value == "24x24":
+        elif size == "24x24":
             rows, cols = 24, 24
-        elif value == "30x16 (Expert)":
+        elif size == "30x16 (Expert)":
             rows, cols = 16, 30
         else:
             rows, cols = 8, 8
-        
+
         # Update the grid
         grid_container.content = create_grid(rows, cols)
         page.update()
 
-    grid_size_dropdown.on_change = on_grid_change
+    # Create a main layout container that includes the menubar at the top
+    main_layout = ft.Column(
+        controls=[
+            # MenuBar at the top left
+            ft.Container(
+                content=menubar,
+                alignment=ft.alignment.top_left,
+                padding=ft.padding.only(bottom=5),
+            ),
+            # Game area below the menubar
+            ft.Container(
+                content=outer_container,
+                alignment=ft.alignment.center,
+                expand=True,
+            ),
+        ],
+        spacing=0,
+        expand=True,
+    )
 
     # Put game container in inner container
     inner_container.content = game_container
@@ -238,15 +308,23 @@ def main(page: ft.Page):
     # Put inner container in outer container
     outer_container.content = inner_container
 
-    # Create a centered container for the entire game
-    centered_game = ft.Container(
-        content=outer_container,
-        alignment=ft.alignment.center,
-        expand=True,  # This makes the container expand to fill available space
-    )
-
     # Add to page
-    page.add(centered_game)
+    page.add(main_layout)
+
+    # Place mines randomly
+    def place_mines(rows, cols):
+        num_mines = int(rows * cols * mine_percentage)
+        mines_position = random.sample(range(rows * cols), num_mines)
+        # print(mines_position)
+        for pos in mines_position:
+            r = pos // cols
+            c = pos % cols
+            # print(r, c)
+            cell = grid_container.content.controls[0].content.controls[r].controls[c]
+            cell.data = (r, c, True)  # Mark cell as having a mine
+
+    place_mines(rows, cols)
+
 
 if __name__ == "__main__":
     ft.app(target=main)
