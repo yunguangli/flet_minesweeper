@@ -1,5 +1,6 @@
 import flet as ft
 import random
+from typing import List, Tuple
 
 
 def main(page: ft.Page):
@@ -13,6 +14,7 @@ def main(page: ft.Page):
     page.vertical_alignment = ft.MainAxisAlignment.CENTER  # Center content vertically
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER  # Center content horizontally
     page.theme_mode = ft.ThemeMode.LIGHT  # Use light theme
+    page.padding = 0  # Remove default padding for better control
 
     # Define color constants for the classic Minesweeper look
     DARK_GRAY = "#808080"  # Dark gray for pressed borders
@@ -35,7 +37,7 @@ def main(page: ft.Page):
     outer_container = ft.Container(
         padding=10,  # Space around the inner content
         bgcolor=LIGHT_GRAY,  # Background color
-        border=ft.border.all(2, DARK_GRAY),  # Dark gray border on all sides for sunken effect
+        border=ft.Border.all(2, DARK_GRAY),  # Dark gray border on all sides for sunken effect
         border_radius=0,  # Sharp corners (classic look)
     )
 
@@ -43,11 +45,11 @@ def main(page: ft.Page):
     inner_container = ft.Container(
         padding=10,  # Space around the game content
         bgcolor=LIGHT_GRAY,  # Background color
-        border=ft.border.only(  # Different colors on different sides for 3D effect
-            left=ft.border.BorderSide(2, "#FFFFFF"),  # White on left and top (light source)
-            top=ft.border.BorderSide(2, "#FFFFFF"),
-            right=ft.border.BorderSide(2, DARK_GRAY),  # Dark gray on right and bottom (shadow)
-            bottom=ft.border.BorderSide(2, DARK_GRAY),
+        border=ft.Border.only(  # Different colors on different sides for 3D effect
+            left=ft.BorderSide(2, "#FFFFFF"),  # White on left and top (light source)
+            top=ft.BorderSide(2, "#FFFFFF"),
+            right=ft.BorderSide(2, DARK_GRAY),  # Dark gray on right and bottom (shadow)
+            bottom=ft.BorderSide(2, DARK_GRAY),
         ),
         border_radius=0,  # Sharp corners
     )
@@ -57,11 +59,11 @@ def main(page: ft.Page):
         width=300,  # Fixed width for the panel
         height=50,  # Fixed height for the panel
         bgcolor=LIGHT_GRAY,  # Background color
-        border=ft.border.only(  # Sunken border effect for the panel
-            left=ft.border.BorderSide(2, DARK_GRAY),
-            top=ft.border.BorderSide(2, DARK_GRAY),
-            right=ft.border.BorderSide(2, "#FFFFFF"),
-            bottom=ft.border.BorderSide(2, "#FFFFFF"),
+        border=ft.Border.only(  # Sunken border effect for the panel
+            left=ft.BorderSide(2, DARK_GRAY),
+            top=ft.BorderSide(2, DARK_GRAY),
+            right=ft.BorderSide(2, "#FFFFFF"),
+            bottom=ft.BorderSide(2, "#FFFFFF"),
         ),
         content=ft.Row(  # Layout for the three elements in the panel
             controls=[],  # Will be populated below
@@ -69,7 +71,7 @@ def main(page: ft.Page):
             vertical_alignment=ft.CrossAxisAlignment.CENTER,  # Center vertically
             spacing=20,  # Space between elements
         ),
-        padding=ft.padding.only(left=10, right=10),  # Padding inside the panel
+        padding=ft.Padding.only(left=10, right=10),  # Padding inside the panel
     )
 
     # Create the mine counter display (shows remaining mines)
@@ -86,7 +88,8 @@ def main(page: ft.Page):
             font_family="Courier New",  # Monospace font for even spacing
             text_align=ft.TextAlign.CENTER,  # Center the text
         ),
-        alignment=ft.alignment.center,  # Center the text in the container
+        # alignment=ft.Alignment.CENTER,  # Center the text in the container
+        alignment=ft.Alignment.CENTER,  # Center the text in the container
         padding=2,  # Small padding around the text
     )
 
@@ -104,7 +107,7 @@ def main(page: ft.Page):
             font_family="Courier New",  # Monospace font for even spacing
             text_align=ft.TextAlign.CENTER,  # Center the text
         ),
-        alignment=ft.alignment.center,  # Center the text in the container
+        alignment=ft.Alignment.CENTER,  # Center the text in the container
         padding=2,  # Small padding around the text
     )
 
@@ -113,11 +116,11 @@ def main(page: ft.Page):
         width=40,  # Fixed width
         height=40,  # Fixed height
         bgcolor=LIGHT_GRAY,  # Background color
-        border=ft.border.only(  # Raised border effect (opposite of sunken)
-            left=ft.border.BorderSide(2, "#FFFFFF"),  # White on left and top
-            top=ft.border.BorderSide(2, "#FFFFFF"),
-            right=ft.border.BorderSide(2, DARK_GRAY),  # Dark gray on right and bottom
-            bottom=ft.border.BorderSide(2, DARK_GRAY),
+        border=ft.Border.only(  # Raised border effect (opposite of sunken)
+            left=ft.BorderSide(2, "#FFFFFF"),  # White on left and top
+            top=ft.BorderSide(2, "#FFFFFF"),
+            right=ft.BorderSide(2, DARK_GRAY),  # Dark gray on right and bottom
+            bottom=ft.BorderSide(2, DARK_GRAY),
         ),
         content=ft.IconButton(  # The actual clickable button
             icon=ft.Icons.SENTIMENT_SATISFIED,  # Happy face icon
@@ -129,7 +132,7 @@ def main(page: ft.Page):
                 shape=ft.RoundedRectangleBorder(radius=0),  # Sharp corners
             ),
         ),
-        alignment=ft.alignment.center,  # Center the button in the container
+        alignment=ft.Alignment.CENTER,  # Center the button in the container
     )
 
     # Add the three elements to the top panel
@@ -144,7 +147,7 @@ def main(page: ft.Page):
         expand=False,  # Don't expand to full width
         style=ft.MenuStyle(  # Styling for the menu
             bgcolor=LIGHT_GRAY,  # Background color
-            alignment=ft.alignment.top_left,  # Align to top left
+            alignment=ft.Alignment.TOP_LEFT,  # Align to top left
         ),
         controls=[  # Menu items
             ft.SubmenuButton(  # Main "Game" menu
@@ -185,13 +188,13 @@ def main(page: ft.Page):
             # Store cell data: (row, col, has_mine, is_revealed, is_flagged)
             data=(row, col, has_mine, False, False),
             bgcolor=LIGHT_GRAY,  # Background color
-            border=ft.border.only(  # 3D border effect
-                left=ft.border.BorderSide(2, "#FFFFFF"),  # White on left and top (light)
-                top=ft.border.BorderSide(2, "#FFFFFF"),
-                right=ft.border.BorderSide(2, DARK_GRAY),  # Dark gray on right and bottom (shadow)
-                bottom=ft.border.BorderSide(2, DARK_GRAY),
+            border=ft.Border.only(  # 3D border effect
+                left=ft.BorderSide(2, "#FFFFFF"),  # White on left and top (light)
+                top=ft.BorderSide(2, "#FFFFFF"),
+                right=ft.BorderSide(2, DARK_GRAY),  # Dark gray on right and bottom (shadow)
+                bottom=ft.BorderSide(2, DARK_GRAY),
             ),
-            alignment=ft.alignment.center,  # Center content in the cell
+            alignment=ft.Alignment.CENTER,  # Center content in the cell
         )
         
         # Wrap the cell with GestureDetector to handle both left and right clicks
@@ -211,11 +214,11 @@ def main(page: ft.Page):
         # Create the grid container with sunken border effect
         grid = ft.Container(
             bgcolor=LIGHT_GRAY,  # Background color
-            border=ft.border.only(  # Sunken border effect (opposite of cell borders)
-                left=ft.border.BorderSide(2, DARK_GRAY),
-                top=ft.border.BorderSide(2, DARK_GRAY),
-                right=ft.border.BorderSide(2, "#FFFFFF"),
-                bottom=ft.border.BorderSide(2, "#FFFFFF"),
+            border=ft.Border.only(  # Sunken border effect (opposite of cell borders)
+                left=ft.BorderSide(2, DARK_GRAY),
+                top=ft.BorderSide(2, DARK_GRAY),
+                right=ft.BorderSide(2, "#FFFFFF"),
+                bottom=ft.BorderSide(2, "#FFFFFF"),
             ),
             padding=4,  # Small padding around the cells
             content=ft.Column(  # Vertical arrangement of rows
@@ -243,7 +246,7 @@ def main(page: ft.Page):
             ],
             alignment=ft.MainAxisAlignment.CENTER,  # Center the menu bar
         ),
-        padding=ft.padding.only(top=10),  # Space above the menu bar
+        padding=ft.Padding.only(top=10),  # Space above the menu bar
     )
 
     # Create the main game container that holds everything
@@ -258,7 +261,7 @@ def main(page: ft.Page):
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,  # Center everything horizontally
         ),
         # This container will center its content vertically and horizontally
-        alignment=ft.alignment.center,
+        alignment=ft.Alignment.CENTER,
     )
 
     # === ALL FUNCTIONS GROUPED TOGETHER ===
@@ -271,19 +274,19 @@ def main(page: ft.Page):
         """
         if state == 'up':
             # Raised border (normal state)
-            cell.border = ft.border.only(
-                left=ft.border.BorderSide(2, "#FFFFFF"),
-                top=ft.border.BorderSide(2, "#FFFFFF"),
-                right=ft.border.BorderSide(2, DARK_GRAY),
-                bottom=ft.border.BorderSide(2, DARK_GRAY),
+            cell.border = ft.Border.only(
+                left=ft.BorderSide(2, "#FFFFFF"),
+                top=ft.BorderSide(2, "#FFFFFF"),
+                right=ft.BorderSide(2, DARK_GRAY),
+                bottom=ft.BorderSide(2, DARK_GRAY),
             )
         elif state == 'down':
             # Pressed border (clicked state)
-            cell.border = ft.border.only(
-                left=ft.border.BorderSide(2, DARK_GRAY),
-                top=ft.border.BorderSide(2, DARK_GRAY),
-                right=ft.border.BorderSide(2, "#FFFFFF"),
-                bottom=ft.border.BorderSide(2, "#FFFFFF"),
+            cell.border = ft.Border.only(
+                left=ft.BorderSide(2, DARK_GRAY),
+                top=ft.BorderSide(2, DARK_GRAY),
+                right=ft.BorderSide(2, "#FFFFFF"),
+                bottom=ft.BorderSide(2, "#FFFFFF"),
             )
 
     # Function to count adjacent mines for a cell
@@ -367,12 +370,12 @@ def main(page: ft.Page):
     def show_game_over_popup():
         """Show game over dialog when player steps on a mine"""
         def on_reset_click(e):
-            page.close(dialog)
+            page.pop_dialog()
             reset_game()
             page.update()
         
         def on_close_click(e):
-            page.close(dialog)
+            page.pop_dialog()
             page.update()
         
         # Create the dialog
@@ -387,19 +390,19 @@ def main(page: ft.Page):
             actions_alignment=ft.MainAxisAlignment.END,
         )
         
-        # Open the dialog using page.open()
-        page.open(dialog)
+        # Open the dialog using page.show_dialog()
+        page.show_dialog(dialog)
 
     # Function to show win popup
     def show_win_popup():
         """Show victory dialog when player wins"""
         def on_reset_click(e):
-            page.close(dialog)
+            page.pop_dialog()
             reset_game()
             page.update()
         
         def on_close_click(e):
-            page.close(dialog)
+            page.pop_dialog()
             page.update()
         
         # Create the dialog
@@ -414,8 +417,8 @@ def main(page: ft.Page):
             actions_alignment=ft.MainAxisAlignment.END,
         )
         
-        # Open the dialog using page.open()
-        page.open(dialog)
+        # Open the dialog using page.show_dialog()
+        page.show_dialog(dialog)
 
     # Function to reset the game
     def reset_game():
@@ -619,13 +622,13 @@ def main(page: ft.Page):
             # MenuBar at the top left
             ft.Container(
                 content=menubar,
-                alignment=ft.alignment.top_left,
-                padding=ft.padding.only(bottom=5),  # Space between menu and game
+                alignment=ft.Alignment.TOP_LEFT,  # Align to top left
+                padding=ft.Padding.only(bottom=5),  # Space between menu and game
             ),
             # Game area below the menubar
             ft.Container(
                 content=outer_container,  # The outer container holds everything
-                alignment=ft.alignment.center,  # Center the game area
+                alignment=ft.Alignment.CENTER,  # Center the game area
                 expand=True,  # Take up remaining space
             ),
         ],
@@ -652,4 +655,4 @@ if __name__ == "__main__":
     This is the entry point for running the Minesweeper application.
     When this script is run directly (not imported), it will start the Flet app.
     """
-    ft.app(target=main)  # Start the Flet application with the main function
+    ft.run(main, view=ft.AppView.FLET_APP)  # Start the Flet application with the main function
